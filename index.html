@@ -1,0 +1,40 @@
+<html ng-app="meditationApp">
+<head>
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/flipclock.css" /> 
+</head>
+
+<body ng-controller="ClockCtrl">
+
+<h1>Meditation Timer</h1>
+
+<br />
+
+<div clock countdown="true" clock-face="MinuteCounter" duration="{{duration}}" start="{{begin}}", stop="trackTime(duration)">	
+</div>
+
+<h1> {{result}} </h1>
+
+<div id="selectTime">
+	<p>How many seconds would you like to meditate?</p>
+
+	Seconds: <input type="text" ng-model="duration" />
+
+	<p>Selected duration: {{duration}}</p>
+
+	<button ng-click="begin = !begin">Start / Stop</button>
+</div>
+
+<audio id="bell">
+  <source src="audio/small-bell.mp3" type="audio/mpeg">
+  <!--<source src="horse.ogg" type="audio/ogg">-->
+  <embed height="0" width="0" src="audio/small-bell.mp3">
+</audio>
+
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.3/angular.min.js"></script>
+<script src="js/lib/flipclock.js"></script>
+<script src="js/meditation_script.js"></script>
+</body>
+
+</html>
