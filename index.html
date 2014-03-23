@@ -5,7 +5,7 @@
 </head>
 
 <body ng-controller="ClockCtrl">
-
+<div class="container">
 <h1>Meditation Timer</h1>
 
 <br />
@@ -16,16 +16,19 @@
 <h1> {{result}} </h1>
 
 <div id="selectTime">
-	<p>How many minutes would you like to meditate?</p>
+	<p class="lead">How many minutes would you like to meditate?</p>
 
-	<!--Seconds: <input type="text" ng-model="duration" /> OR--> Minutes: <input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" />
+	<!--Seconds: <input type="text" ng-model="duration" /> OR--> <span class="lead"> Minutes: </span><input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" /> 
+	
+	<span ng-show="duration">({{duration}} seconds)</span>
 
-	<p>Selected duration: {{duration}} seconds</p>
-
-	<button ng-click="begin = !begin">Start</button>
+	<br />
+	
+	<button class="btn btn-primary" ng-click="begin = !begin">Start</button>
 </div>
-
+<hr />
 <div id="activity">
+	<h3> Past Meditation Sessions </h3>
 	<ul>
 		<li ng-repeat="session in pastActivity track by $index">
 			{{session.date | date:'shortDate'}}: {{ session.duration | minutes }} 
@@ -33,7 +36,7 @@
 		</li>
 	</ul>
 </div>
-
+</div> <!--.container div-->
 <audio id="bell">
   <source src="audio/small-bell.mp3" type="audio/mpeg">
   <!--<source src="horse.ogg" type="audio/ogg">-->
