@@ -1,14 +1,54 @@
 var app = angular.module('meditationApp', []);
 
-app.controller('ClockCtrl', ['$scope', '$timeout', function($scope, $timeout){
+app.filter('minutes', function(){
+	return function(val) {
+		var minutes = Math.floor(val / 60),
+			secondsRemainder = parseInt(val % 60);
+
+		console.log('minutes:', minutes, 'secondsRemainder:', secondsRemainder);
+
+		if (secondsRemainder && minutes) {
+			return minutes + ' minutes and ' + secondsRemainder + ' seconds.' 
+		} else if (minutes) {
+			return minutes + ' minutes'
+		} else {
+			return secondsRemainder + ' seconds'
+		}
+	}
+});
+
+app.factory('DataService', function(){
+	// Uses localStorage for now
+	// This API will eventually move to AppEngine
+	return {
+		saveSession: function(session) {
+			var sessions = JSON.parse(localStorage['meditationData'])
+			sessions.push(session);
+
+			localStorage['meditationData'] = JSON.stringify(sessions);
+		},
+		getSessions: function() {
+			try {
+				return JSON.parse(localStorage['meditationData']);
+			} catch(e) {
+				console.log('Error: Unable to retrieve session data.', e);
+				return [];
+			}
+		},
+		deleteSession: function(session, index) {
+			var sessions = JSON.parse(localStorage['meditationData'])
+			sessions.splice(index, 1);
+
+			localStorage['meditationData'] = JSON.stringify(sessions);
+		}
+	};
+});
+
+app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scope, $timeout, DataService){
 	$scope.begin = false;
 	$scope.result = "";
-	
-	try {
-		$scope.pastActivity = JSON.parse(localStorage['meditationData']) || [];
-	} catch(e) {
-		$scope.pastActivity = [];
-	}
+
+	$scope.pastActivity = DataService.getSessions();
 	
 	console.log('pastActivity is', $scope.pastActivity)
 
@@ -21,18 +61,30 @@ app.controller('ClockCtrl', ['$scope', '$timeout', function($scope, $timeout){
 	// This function is meant to be executed by the timer clock at completion
 	// @param - duration {int}
 	$scope.trackTime = function(duration) {
-		console.log('Done!');
+
+		var session = {
+			date: new Date().getTime(),
+			duration: duration
+		}; 
+
 		$scope.result = 'Congrats! You meditated for ' + duration + ' seconds!'
+		
 		$timeout(function(){
 			$scope.result = "";
 		}, 5000);
 
-		$scope.pastActivity.push({
-			date: new Date().getTime(),
-			duration: duration
-		});
 
-		localStorage['meditationData'] = JSON.stringify($scope.pastActivity);
+		$scope.pastActivity.push(session);
+
+		DataService.saveSession(session);
+	};
+
+	$scope.deleteSession = function(session, index) {
+		if (confirm('Are you sure? There\'s no undoing this action.')) {
+			$scope.pastActivity.splice(index,1);
+			DataService.deleteSession(session, index);	
+		}
+
 	};
 }]);
 
@@ -44,17 +96,18 @@ app.directive('clock', function(){
 	return {
 		restrict: 'A',
 		scope: {
-			countdown: '@',
-			clockFace: '@',
-			start: '@',
-			duration: '@',
-			stopFunc: '&stop'
+			countdown: '@', // Usually true, to indicate counting down
+			clockFace: '@', // What kind of timer to display
+			start: '@', // The scope property to watch for starting the timer
+			duration: '@', // How long the timer should run
+			stopFunc: '&stop', //Function to call upon completed timer
+			sound: '@' // The ID of the audio element on the page
 		},
 		link: function(scope, element, attrs) {
 
 			var duration, 
 				clock,
-				bell = document.getElementById('bell');
+				bell = document.getElementById(scope.sound);
 
 			scope.$watch('start', function(val){
 				

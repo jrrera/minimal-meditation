@@ -10,25 +10,26 @@
 
 <br />
 
-<div clock countdown="true" clock-face="MinuteCounter" duration="{{duration}}" start="{{begin}}", stop="trackTime(duration)">	
+<div clock countdown="true" clock-face="MinuteCounter" duration="{{duration}}" start="{{begin}}", stop="trackTime(duration)" sound="bell">	
 </div>
 
 <h1> {{result}} </h1>
 
 <div id="selectTime">
-	<p>How many seconds would you like to meditate?</p>
+	<p>How many minutes would you like to meditate?</p>
 
-	Seconds: <input type="text" ng-model="duration" /> OR Minutes: <input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" />
+	<!--Seconds: <input type="text" ng-model="duration" /> OR--> Minutes: <input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" />
 
 	<p>Selected duration: {{duration}} seconds</p>
 
-	<button ng-click="begin = !begin">Start / Stop</button>
+	<button ng-click="begin = !begin">Start</button>
 </div>
 
 <div id="activity">
 	<ul>
-		<li ng-repeat="session in pastActivity">
-			{{session.date | date:'shortDate'}}: {{ session.duration }} seconds
+		<li ng-repeat="session in pastActivity track by $index">
+			{{session.date | date:'shortDate'}}: {{ session.duration | minutes }} 
+			<button class="btn btn-xs" ng-click="deleteSession(session, $index)">Delete</button>
 		</li>
 	</ul>
 </div>
