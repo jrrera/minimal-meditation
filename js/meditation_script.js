@@ -3,6 +3,20 @@ var app = angular.module('meditationApp', []);
 app.controller('ClockCtrl', ['$scope', '$timeout', function($scope, $timeout){
 	$scope.begin = false;
 	$scope.result = "";
+	
+	try {
+		$scope.pastActivity = JSON.parse(localStorage['meditationData']) || [];
+	} catch(e) {
+		$scope.pastActivity = [];
+	}
+	
+	console.log('pastActivity is', $scope.pastActivity)
+
+	// Converts minutes to seconds
+	$scope.convertDurationToSeconds = function(minutes) {
+		console.log('lets convert');
+		$scope.duration = isNaN(minutes) ? 0 : (minutes * 60);
+	};
 
 	$scope.trackTime = function(duration) {
 		console.log('Done!');
@@ -10,6 +24,13 @@ app.controller('ClockCtrl', ['$scope', '$timeout', function($scope, $timeout){
 		$timeout(function(){
 			$scope.result = "";
 		}, 5000);
+
+		$scope.pastActivity.push({
+			date: new Date().getTime(),
+			duration: duration
+		});
+
+		localStorage['meditationData'] = JSON.stringify($scope.pastActivity);
 	};
 }]);
 
@@ -32,7 +53,9 @@ app.directive('clock', function(){
 			console.log('An Angular clock is about to be here!');
 			console.log('Clockface', scope.clockFace);
 
-			var duration, clock;
+			var duration, 
+				clock,
+				bell = document.getElementById('bell');
 
 			scope.$watch('start', function(val){
 				
@@ -51,11 +74,11 @@ app.directive('clock', function(){
 						callbacks: {
 							start: function() {
 								console.log('Ring ring!'); // Bell sound should initiate here.
-								document.getElementById('bell').play();
+								bell.play();
 							},
 							stop: function() {
 								console.log('Ring ring!');
-								document.getElementById('bell').play();
+								bell.play();
 								scope.$apply(function(){
 									scope.stopFunc(duration);
 								});
@@ -65,8 +88,6 @@ app.directive('clock', function(){
 					});
 				}
 			});
-
-
 		}
 	}
 })

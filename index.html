@@ -18,11 +18,19 @@
 <div id="selectTime">
 	<p>How many seconds would you like to meditate?</p>
 
-	Seconds: <input type="text" ng-model="duration" />
+	Seconds: <input type="text" ng-model="duration" /> OR Minutes: <input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" />
 
 	<p>Selected duration: {{duration}}</p>
 
 	<button ng-click="begin = !begin">Start / Stop</button>
+</div>
+
+<div id="activity">
+	<ul>
+		<li ng-repeat="session in pastActivity track by $index">
+			{{session.date | date:'shortDate'}}: {{ session.duration }} seconds
+		</li>
+	</ul>
 </div>
 
 <audio id="bell">
