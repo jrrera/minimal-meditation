@@ -1,0 +1,8 @@
+.smallInput {
+	width: 50px;
+}
+
+.successful {
+	background-color: LightGreen;
+	display: inline-block;
+}

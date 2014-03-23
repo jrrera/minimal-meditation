@@ -2,19 +2,35 @@
 <head>
 	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 	<link rel="stylesheet" href="css/flipclock.css" /> 
+	<link rel="stylesheet" href="css/main.css">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Minimal Meditation Timer - A Minimalist Meditation Timer with Goals, Tracking, and More.</title>
 </head>
 
 <body ng-controller="ClockCtrl">
 <div class="container">
-<h1>Meditation Timer</h1>
+
+<h1>
+	Minimal Meditation
+	<br />
+	<small>A minimalist meditation timer with<br />goals, tracking, and more.</small>
+</h1>
+
 
 <br />
 
-<div clock countdown="true" clock-face="MinuteCounter" duration="{{duration}}" start="{{begin}}", stop="trackTime(duration)" sound="bell">	
+<!-- Begin clock section-->
+<div id="clockDiv">
+	<div clock countdown="true" clock-face="MinuteCounter" duration="{{duration}}" start="{{begin}}", stop="trackTime(duration)" sound="bell">	
+	</div>
+
+	<h1> {{result}} </h1>
 </div>
+<!--End cock section-->
 
-<h1> {{result}} </h1>
-
+<!--Timer selection section-->
 <div id="selectTime">
 	<p class="lead">How many minutes would you like to meditate?</p>
 
@@ -26,20 +42,46 @@
 	
 	<button class="btn btn-primary" ng-click="begin = !begin">Start</button>
 </div>
+<!--End timer selection section-->
+
 <hr />
+
+<!--Goal section-->
+<div id="goal">
+	
+	<span class="lead"> Your goal is <strong>{{goal | minutes}}</strong> per day.</span> 
+	<a href="" ng-click="showGoalChanger = !showGoalChanger">(Change goal)</a>
+	
+	<!-- Begin goal change functionality -->
+	<div ng-show="showGoalChanger" id="changeGoal">
+		<input type="text" class="smallInput" ng-model="goalChange.minutes"> minutes and 
+		<input type="text" class="smallInput" ng-model="goalChange.seconds"> seconds.
+		<br /><br />
+		<button class="btn btn-sm" ng-click="changeGoal(goalChange.minutes, goalChange.seconds)">Update Goal</button>
+	</div>
+	<!-- End goal change functionality-->
+
+</div>
+<!--End Goal section-->
+
+<hr />
+
+<!--Past activity section-->
 <div id="activity">
 	<h3> Past Meditation Sessions </h3>
 	<ul>
-		<li ng-repeat="session in pastActivity track by $index">
-			{{session.date | date:'shortDate'}}: {{ session.duration | minutes }} 
+		<li ng-class="{successful : session.reachedGoal}" ng-repeat="session in pastActivity track by $index">
+			{{session.date | date:'shortDate'}}: {{ session.duration | minutes }} - <em>Goal:</em> <strong>{{session.goal | minutes}}</strong>
 			<button class="btn btn-xs" ng-click="deleteSession(session, $index)">Delete</button>
 		</li>
 	</ul>
 </div>
+<!--End past activity section-->
+
 </div> <!--.container div-->
 <audio id="bell">
   <source src="audio/small-bell.mp3" type="audio/mpeg">
-  <!--<source src="horse.ogg" type="audio/ogg">-->
+  <!--<source src="small-bell.ogg" type="audio/ogg">-->
   <embed height="0" width="0" src="audio/small-bell.mp3">
 </audio>
 
