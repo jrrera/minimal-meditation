@@ -20,14 +20,14 @@
 
 	Seconds: <input type="text" ng-model="duration" /> OR Minutes: <input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" />
 
-	<p>Selected duration: {{duration}}</p>
+	<p>Selected duration: {{duration}} seconds</p>
 
 	<button ng-click="begin = !begin">Start / Stop</button>
 </div>
 
 <div id="activity">
 	<ul>
-		<li ng-repeat="session in pastActivity track by $index">
+		<li ng-repeat="session in pastActivity">
 			{{session.date | date:'shortDate'}}: {{ session.duration }} seconds
 		</li>
 	</ul>

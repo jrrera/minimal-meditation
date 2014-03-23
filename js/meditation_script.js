@@ -18,6 +18,8 @@ app.controller('ClockCtrl', ['$scope', '$timeout', function($scope, $timeout){
 		$scope.duration = isNaN(minutes) ? 0 : (minutes * 60);
 	};
 
+	// This function is meant to be executed by the timer clock at completion
+	// @param - duration {int}
 	$scope.trackTime = function(duration) {
 		console.log('Done!');
 		$scope.result = 'Congrats! You meditated for ' + duration + ' seconds!'
@@ -49,9 +51,6 @@ app.directive('clock', function(){
 			stopFunc: '&stop'
 		},
 		link: function(scope, element, attrs) {
-			
-			console.log('An Angular clock is about to be here!');
-			console.log('Clockface', scope.clockFace);
 
 			var duration, 
 				clock,
@@ -65,6 +64,10 @@ app.directive('clock', function(){
 
 					// If you've already started a clock, wipe
 					// it out and start fresh with a new clock
+					// 
+					// This needs to be improved because right 
+					// now it doesn't unregister the callbacks from
+					// the removed clock
 					if (clock) $(element).empty();
 
 					// Create clock using the FlipClock library
@@ -73,7 +76,7 @@ app.directive('clock', function(){
 						clockFace: scope.clockFace,
 						callbacks: {
 							start: function() {
-								console.log('Ring ring!'); // Bell sound should initiate here.
+								console.log('Ring ring!');
 								bell.play();
 							},
 							stop: function() {
