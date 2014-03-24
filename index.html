@@ -31,7 +31,7 @@
 <!--End cock section-->
 
 <!--Timer selection section-->
-<div id="selectTime">
+<div id="selectTime" ng-hide="result">
 	<p class="lead">How many minutes would you like to meditate?</p>
 
 	<!--Seconds: <input type="text" ng-model="duration" /> OR--> <span class="lead"> Minutes: </span><input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" /> 
