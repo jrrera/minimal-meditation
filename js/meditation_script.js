@@ -15,22 +15,30 @@ app.filter('minutes', function(){
 	}
 });
 
-app.factory('DataService', function(){
-	// Uses localStorage for now
-	// This API will eventually move to AppEngine
+app.factory('DataService', ['$q', function($q){
+	// Uses localStorage for now, wrapped in $q.when() so that it is 
+	// handled as a promise. This API will eventually move to $http 
+	// calls (also a promise)
 	return {
 		saveSession: function(session) {
-			var sessions = JSON.parse(localStorage['meditationData']);
+			var sessions;
+			
+			try {
+				sessions = JSON.parse(localStorage['meditationData']);	
+			} catch(e) {
+				sessions = [];
+			}
+			
 			sessions.push(session);
-
 			localStorage['meditationData'] = JSON.stringify(sessions);
 		},
 		getSessions: function() {
 			try {
-				return JSON.parse(localStorage['meditationData']);
+				// Try returning the parsed meditation data wrapped in a promise
+				return $q.when(JSON.parse(localStorage['meditationData']));
 			} catch(e) {
 				console.log('Error: Unable to retrieve session data.', e);
-				return [];
+				return $q.when([]); // Return a promise with an empty array
 			}
 		},
 		deleteSession: function(session, index) {
@@ -47,27 +55,37 @@ app.factory('DataService', function(){
 		getGoal: function() {
 			var duration = parseInt(localStorage['meditationGoal']);
 			// Return 540 seconds by default if no valid data to pull
-			return duration ? duration : 600;
+			// wrapped in a $q promise
+			return $q.when(duration ? duration : 600);
 		}
 	};
-});
+}]);
 
 app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scope, $timeout, DataService){
 	$scope.begin = false;
 	$scope.result = "";
 
-	// Default values for changing your meditation goal
-	$scope.goalChange = {
-		minutes: 0,
-		seconds: 0
-	};
-
-	// Seconds per day of meditation that is your goal
-	// This will eventually be part of onboarding onto the app
-	$scope.goal = DataService.getGoal(); 
 
 	// Get past activity
-	$scope.pastActivity = DataService.getSessions();
+	DataService.getSessions().then(function(data){
+		$scope.pastActivity = data;
+
+		// Seconds per day of meditation that is your goal
+		// This will eventually be part of onboarding onto the app
+		DataService.getGoal().then(function(goalVal){
+			$scope.goal = goalVal;
+
+			// Default values for changing your meditation goal
+			$scope.goalChange = {
+				minutes: Math.floor($scope.goal / 60),
+				seconds: $scope.goal % 60
+			};
+		}); 
+	});
+	
+
+
+	
 
 	/**
 	 * Converts minutes to seconds for displaying in the view
