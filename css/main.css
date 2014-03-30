@@ -6,3 +6,8 @@
 	background-color: LightGreen;
 	display: inline-block;
 }
+
+#history li > span {
+	margin-right: 5px;
+	padding-right: 5px;
+}

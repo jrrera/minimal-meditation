@@ -1,3 +1,5 @@
+/* Uses Google Closure compiler JDSoc syntax */
+
 var app = angular.module('meditationApp', []);
 
 app.filter('minutes', function(){
@@ -54,9 +56,36 @@ app.factory('DataService', ['$q', function($q){
 
 		getGoal: function() {
 			var duration = parseInt(localStorage['meditationGoal']);
-			// Return 540 seconds by default if no valid data to pull
+			// Return 600 seconds by default if no valid data to pull
 			// wrapped in a $q promise
 			return $q.when(duration ? duration : 600);
+		},
+
+		/**
+		 * Call upon last used meditation duration if available
+		 * @returns {number|null} - Returns null if no number value can be found
+		 */
+		getLastDuration: function() {
+			var lastDuration = localStorage['meditationLastDuration'];
+
+			if (!lastDuration || isNaN(lastDuration)) {
+				return null;
+			} else {
+				return lastDuration;
+			}
+		},
+
+		/**
+		 * Save last used meditation duration if available
+		 * @param {number} seconds - The amount of seconds to add into conversion
+		 * @returns {boolean}
+		 */
+		setLastDuration: function(seconds) {
+			// Don't save anything if seconds are invalid
+			if (!seconds || isNaN(seconds)) return false;
+
+			localStorage['meditationLastDuration'] = seconds;
+			return true;
 		}
 	};
 }]);
@@ -80,8 +109,20 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scop
 				minutes: Math.floor($scope.goal / 60),
 				seconds: $scope.goal % 60
 			};
+
+			$scope.duration = DataService.getLastDuration();
+
+			if ($scope.duration) {
+				$scope.minutes = ($scope.duration / 60).toFixed(1);
+			}
 		}); 
-	});
+
+	$scope.begin = function() {
+		$scope.begin = !$scope.begin; // Toggle begin switch
+		DataService.setLastDuration($scope.duration);
+	};
+
+});
 	
 
 
@@ -89,16 +130,22 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scop
 
 	/**
 	 * Converts minutes to seconds for displaying in the view
-	 * @param {integer} minutes The amount of minutes to convert to seconds
+	 * @param {Number} minutes - The amount of minutes to convert to seconds
+	 * @param {Number=} seconds - The amount of seconds to add into conversion
+	 * @returns {Number}
 	 */
-	$scope.convertDurationToSeconds = function(minutes) {
-		console.log('lets convert');
-		$scope.duration = isNaN(minutes) ? 0 : (minutes * 60);
+	$scope.convertDurationToSeconds = function(minutes, seconds) {
+		// If seconds is missing or invalid, assign 0
+		if (!seconds || isNaN(seconds)) seconds = 0; 
+		
+		// Set duration on scope in seconds, and return that value
+		$scope.duration = (isNaN(minutes) ? 0 + seconds : (minutes * 60) + seconds);
+		return $scope.duration;
 	};
 
 	/**
 	 * This function is executed by the timer clock at completion
-	 * @param {integer} duration The duration of the session in seconds
+	 * @param {number} duration The duration of the session in seconds
 	 */
 	$scope.trackTime = function(duration) {
 
@@ -133,7 +180,7 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scop
 	/**
 	 * Deletes are particular session when the 'Delete' button is clicked
 	 * @param {object} session The session you're deleting
-	 * @param {integer} index The position of this session in the sessions array
+	 * @param {number} index The position of this session in the sessions array
 	 * @returns {boolean} Returns true if successful
 	 */	
 	$scope.deleteSession = function(session, index) {
@@ -146,8 +193,8 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scop
 
 	/**
 	 * Changes your goal time
-	 * @param {integer} minutes The number of minutes of the new goal
-	 * @param {integer} seconds Number of seconds of the new goal
+	 * @param {number} minutes The number of minutes of the new goal
+	 * @param {number} seconds Number of seconds of the new goal
 	 * @returns {boolean} Returns true if successful
 	 */	
 	$scope.changeGoal = function(minutes, seconds) {

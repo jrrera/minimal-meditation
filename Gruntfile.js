@@ -39,7 +39,7 @@ module.exports = function(grunt) {
     // For more options for grunt-karma: https://github.com/karma-runner/grunt-karma
     karma: {
       unit: {
-        configFile: 'my.conf.js'
+        configFile: 'test/karma.conf.js'
       }
     },
     watch: {

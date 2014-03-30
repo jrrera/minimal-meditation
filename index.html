@@ -34,13 +34,13 @@
 <div id="selectTime" ng-hide="result">
 	<p class="lead">How many minutes would you like to meditate?</p>
 
-	<!--Seconds: <input type="text" ng-model="duration" /> OR--> <span class="lead"> Minutes: </span><input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" /> 
+	<span class="lead"> Minutes: </span><input type="text" ng-change="convertDurationToSeconds(minutes)" ng-model="minutes" /> 
 	
 	<span ng-show="duration">({{duration}} seconds)</span>
 
 	<br />
 	
-	<button class="btn btn-primary" ng-click="begin = !begin">Start</button>
+	<button class="btn btn-primary" ng-click="begin()">Start</button>
 </div>
 <!--End timer selection section-->
 
@@ -69,9 +69,11 @@
 <!--Past activity section-->
 <div id="activity">
 	<h3> Past Meditation Sessions </h3>
-	<ul>
-		<li ng-class="{successful : session.reachedGoal}" ng-repeat="session in pastActivity track by $index">
-			{{session.date | date:'shortDate'}}: {{ session.duration | minutes }} - <em>Goal:</em> <strong>{{session.goal | minutes}}</strong>
+	<ul id="history">
+		<li ng-repeat="session in pastActivity track by $index">
+			<span ng-class="{successful : session.reachedGoal}">
+				{{session.date | date:'shortDate'}}: {{ session.duration | minutes }} - <em>Goal:</em> <strong>{{session.goal | minutes}}</strong>
+			</span>
 			<button class="btn btn-xs" ng-click="deleteSession(session, $index)">Delete</button>
 		</li>
 	</ul>

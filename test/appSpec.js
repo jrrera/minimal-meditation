@@ -1,3 +1,5 @@
+// Remember, you can use 'iit' or 'ddescribe' to isolate tests this gets heavy
+
 describe('Testing a controller', function() {
   var $scope, ctrl, $timeout, sessionData;
   
@@ -13,7 +15,7 @@ describe('Testing a controller', function() {
     // This will isolate the controller we're testing from
     // any other code.
     // we'll set up the returns for this later 
-    DataServiceMock = jasmine.createSpyObj('DataServiceMock', ['getGoal', 'getSessions']);
+    DataServiceMock = jasmine.createSpyObj('DataServiceMock', ['getGoal', 'getSessions', 'getLastDuration']);
     
     // load the module you're testing.
     module('meditationApp');
@@ -34,9 +36,9 @@ describe('Testing a controller', function() {
       ];
   
       // set up the returns for our service mock
-      // $q.when('weee') creates a resolved promise to "weee".
       DataServiceMock.getGoal.andReturn($q.when(630));
       DataServiceMock.getSessions.andReturn($q.when(sessionData));
+      DataServiceMock.getLastDuration.andReturn(120);
       
       // assign $timeout to a scoped variable so we can use 
       // $timeout.flush() later. Notice the _underscore_ trick
@@ -59,40 +61,38 @@ describe('Testing a controller', function() {
   /* Test 1: The simplest of the simple.
    * here we're going to test that some things were 
    * populated when the controller function whas evaluated. */
-  it('should initialize result and begin properties to falsey objects', function() {
-    
-    //just assert. $scope was set up in beforeEach() (above)
-    expect($scope.begin).toEqual(false);
+  it('should initialize result to an empty string', function() {
     expect($scope.result).toEqual("");
   });
   
   
   // Test 2: Is the DataService returning session data properly 
   // onto $scope.pastActivity??
-  it('should pull past session data successfully', function (){
+  it('should pull past session and goal data successfully', function (){
     
     // DataService runs automatically upon controller instantiation
     // So step 1 is to flush out the promise object to return the data
     $timeout.flush();
 
+    expect(DataServiceMock.getSessions).toHaveBeenCalled();
+    
     expect($scope.pastActivity.length).toEqual(2); // Mock object has 2 entries
-
-  });
-
-  /* Test 3: 
-   * Is DataService properly setting the goal duration and converting to 
-   minutes and seconds? */
-  it('should pull past session data successfully', function (){
-    
-    // DataService runs automatically upon controller instantiation
-    // So step 1 is to flush out the promise object to return the data
-    $timeout.flush();
-
-    expect($scope.goal).toEqual(630); // The mock object has 2 entries
+    expect($scope.goal).toEqual(630); // Goal duration defined in beforeEach
     expect($scope.goalChange).toEqual({ minutes: 10, seconds: 30 });
 
   });
-  
+
+  it('should be able to get and set last used meditation duration', function (){
+    
+    // DataService runs automatically upon controller instantiation
+    // So step 1 is to flush out the promise object to return the data
+    $timeout.flush();
+
+    expect(DataServiceMock.getLastDuration).toHaveBeenCalled(); 
+    expect($scope.duration).toEqual(120); // Goal duration defined in beforeEach
+
+  });
+
   
   /* Test 3: Testing a $watch()
    * The important thing here is to call $apply() 
