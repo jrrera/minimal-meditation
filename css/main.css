@@ -11,3 +11,26 @@
 	margin-right: 5px;
 	padding-right: 5px;
 }
+
+#streak, #goal-visual, .chart, #activity  {
+	display: block;
+	clear: both;
+}
+
+#goal-visual {
+	margin-left: -100px;
+}
+
+.chart {
+	width: 66%;
+	height: 400px;
+	float: left;
+}
+
+hr {
+	clear: both;
+}
+
+.bigGraph {width:500px;height:500px;float:left;}
+.mediumGraph {width:400px;height:400px;float:left;}
+.smallGraph {width:200px;height:200px;float:left;}

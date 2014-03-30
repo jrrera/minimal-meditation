@@ -1,4 +1,4 @@
-<html ng-app="meditationApp">
+<html>
 <head>
 	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 	<link rel="stylesheet" href="css/flipclock.css" /> 
@@ -66,6 +66,23 @@
 
 <hr />
 
+<!--Streak tracking session-->
+<div id="streak" ng-show="streakData.streakDays">
+	<span class="lead"> 
+		You're going strong at <strong>{{streakData.streakDays}}</strong> days without missing a session!
+	</span> 
+</div>
+<!--End streak tracking section-->
+
+<!--Goal visualization-->
+<div id="goal-visual">
+	<div class="chart" google-chart="ColumnChart" ng-model="streakData.visual"></div>
+	<br />
+</div>
+<!--End goal visualization-->
+
+<hr />
+
 <!--Past activity section-->
 <div id="activity">
 	<h3> Past Meditation Sessions </h3>
@@ -81,6 +98,7 @@
 <!--End past activity section-->
 
 </div> <!--.container div-->
+
 <audio id="bell">
   <source src="audio/small-bell.mp3" type="audio/mpeg">
   <!--<source src="small-bell.ogg" type="audio/ogg">-->
@@ -89,6 +107,7 @@
 
 <script src="js/lib/jquery-1.11.0.min.js"></script>
 <script src="js/lib/angular.min.js"></script>
+<script src="https://www.google.com/jsapi" type="text/javascript"></script>
 <script src="js/lib/flipclock.js"></script>
 <script src="js/meditation_script.js"></script>
 </body>
