@@ -190,7 +190,7 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scop
 		var reachedGoal, sessionData;
 
 		// First, check to see if we met our goal for the day
-		reachedGoal = (duration > $scope.goal ? true : false); 
+		reachedGoal = (duration >= $scope.goal ? true : false); 
 
 		console.log('Did you reach your goal?', reachedGoal);
 
@@ -254,8 +254,7 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scop
 // gavindraper.com/2013/07/30/google-charts-in-angularjs/
 // It better handles async data and data models that are more
 // than one level deep via $scope.$eval
-// Note: To get this to resize, we may need to do extra
-// work: http://stackoverflow.com/questions/8950761/google-chart-redraw-scale-with-window-resize
+// Note: Draws itself once to scale by device. So resizing doesn't work
 app.directive("googleChart",function($timeout){  
     return{
         restrict : "A",
