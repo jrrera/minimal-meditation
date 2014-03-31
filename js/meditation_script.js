@@ -139,7 +139,7 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scop
 
 		$scope.streakData.visual.dataTable = new google.visualization.DataTable();
 		$scope.streakData.visual.dataTable.addColumn("string","Date")
-		$scope.streakData.visual.dataTable.addColumn("number","Length (minutes)")
+		$scope.streakData.visual.dataTable.addColumn("number","Minutes")
 		$scope.streakData.visual.dataTable.addRow(["3/1/14",5]);
 		$scope.streakData.visual.dataTable.addRow(["3/2/14",0]);
 		$scope.streakData.visual.dataTable.addRow(["3/3/14",0]);

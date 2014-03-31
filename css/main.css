@@ -17,13 +17,11 @@
 	clear: both;
 }
 
-#goal-visual {
-	margin-left: -100px;
-}
+/*#goal-visual {
+	margin-left: -10px;
+}*/
 
 .chart {
-	width: 66%;
-	height: 400px;
 	float: left;
 }
 
