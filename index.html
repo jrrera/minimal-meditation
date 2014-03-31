@@ -1,4 +1,4 @@
-<html>
+<html ng-app="meditationApp">
 <head>
 	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 	<link rel="stylesheet" href="css/flipclock.css" /> 
@@ -76,7 +76,7 @@
 
 <!--Goal visualization-->
 <div id="goal-visual">
-	<div class="chart" google-chart="ColumnChart" ng-model="streakData.visual"></div>
+	<div class="chart" google-chart="ColumnChart" ng-model="streakData.visual" trigger="activateChart"></div>
 	<br />
 </div>
 <!--End goal visualization-->
@@ -105,11 +105,12 @@
   <embed height="0" width="0" src="audio/small-bell.mp3">
 </audio>
 
+<script src="https://www.google.com/jsapi" type="text/javascript"></script>
 <script src="js/lib/jquery-1.11.0.min.js"></script>
 <script src="js/lib/angular.min.js"></script>
-<script src="https://www.google.com/jsapi" type="text/javascript"></script>
 <script src="js/lib/flipclock.js"></script>
 <script src="js/meditation_script.js"></script>
+
 </body>
 
 </html>

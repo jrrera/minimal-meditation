@@ -4,11 +4,11 @@ var app = app || angular.module('meditationApp', []);
 
 // Callback for initializing Google charts
 // Source: http://gavindraper.com/2013/07/30/google-charts-in-angularjs/
-google.setOnLoadCallback(function () {    
-    angular.bootstrap(document.body, ['meditationApp']);
-});
+// google.setOnLoadCallback(function () {    
+//     angular.bootstrap(document.body, ['meditationApp']);
+// });
 
-google.load('visualization', '1', {packages: ['corechart']});
+// google.load('visualization', '1', {packages: ['corechart']});
 
 
 // Angular filters
@@ -28,6 +28,27 @@ app.filter('minutes', function(){
 });
 
 //Angular services
+app.factory('ChartService', ['$q', function($q){
+	return {
+		/**
+		 * Loads the visualization module from the Google Charts API if available
+		 * @returns {boolean} - Returns true is successful, or false if not available
+		 */
+		loadGoogleVisualization: function() {
+			// var google = google || undefined;
+			try {
+				// Arbitrary callback required here as per this SO article
+				// http://stackoverflow.com/questions/9519673/why-does-google-load-cause-my-page-to-go-blank
+				google.load('visualization', '1', {'callback':'console.log(\'success\');', 'packages':['corechart']});
+				return true;
+			} catch(e) {
+				console.log('Could not load Google lib', e);
+				return false;	
+			}
+		}
+	};
+}]);
+
 app.factory('DataService', ['$q', function($q){
 	// Uses localStorage for now, wrapped in $q.when() so that it is 
 	// handled as a promise. This API will eventually move to $http 
@@ -102,9 +123,10 @@ app.factory('DataService', ['$q', function($q){
 }]);
 
 // Angular controllers
-app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scope, $timeout, DataService){
+app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', 'ChartService', function($scope, $timeout, DataService, ChartService){
 	$scope.begin = false;
 	$scope.result = "";
+	$scope.activateChart = false;
 
 	// Get past activity
 	DataService.getSessions().then(function(data){
@@ -128,33 +150,47 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', function($scop
 			if ($scope.duration) {
 				$scope.minutes = ($scope.duration / 60).toFixed(1);
 			}
+
+			// Next, calculate streak data
+			// Example model. Will eventually come from
+			// DataService.calculateStreak(data);
+			$scope.streakData = {
+				streakDays: 4, 
+				visual: {}
+			}; 
+
 		}); 
 
-		// Example model. Will eventually come from
-		// DataService.calculateStreak(data);
-		$scope.streakData = {
-			streakDays: 4, 
-			visual: {}
-		}; 
+		// Next, we load the Google Visualization module for charting progress
+		// If successful, we flip on the switch for the chart directive
+		if (ChartService.loadGoogleVisualization()) {
 
-		$scope.streakData.visual.dataTable = new google.visualization.DataTable();
-		$scope.streakData.visual.dataTable.addColumn("string","Date")
-		$scope.streakData.visual.dataTable.addColumn("number","Minutes")
-		$scope.streakData.visual.dataTable.addRow(["3/1/14",5]);
-		$scope.streakData.visual.dataTable.addRow(["3/2/14",0]);
-		$scope.streakData.visual.dataTable.addRow(["3/3/14",0]);
-		$scope.streakData.visual.dataTable.addRow(["3/4/14",8]);
-		$scope.streakData.visual.dataTable.addRow(["3/5/14",15]);
-		$scope.streakData.visual.dataTable.addRow(["3/6/14",12]);
-		$scope.streakData.visual.dataTable.addRow(["3/7/14",5]);
-		$scope.streakData.visual.dataTable.addRow(["3/8/14",0]);
-		$scope.streakData.visual.dataTable.addRow(["3/9/14",0]);
-		$scope.streakData.visual.dataTable.addRow(["3/10/14",8]);
-		$scope.streakData.visual.dataTable.addRow(["3/11/14",15]);
-		$scope.streakData.visual.dataTable.addRow(["3/12/14",12]);
-		$scope.streakData.visual.dataTable.addRow(["3/13/14",5]);
-		$scope.streakData.visual.dataTable.addRow(["3/14/14",4]);
-		$scope.streakData.visual.title="Last 14 Days"
+			// As the callback, construct the chart's data model
+			google.setOnLoadCallback(function() {
+				$scope.streakData.visual.dataTable = new google.visualization.DataTable();
+				$scope.streakData.visual.dataTable.addColumn("string","Date")
+				$scope.streakData.visual.dataTable.addColumn("number","Minutes")
+				$scope.streakData.visual.dataTable.addRow(["3/1/14",5]);
+				$scope.streakData.visual.dataTable.addRow(["3/2/14",0]);
+				$scope.streakData.visual.dataTable.addRow(["3/3/14",0]);
+				$scope.streakData.visual.dataTable.addRow(["3/4/14",8]);
+				$scope.streakData.visual.dataTable.addRow(["3/5/14",15]);
+				$scope.streakData.visual.dataTable.addRow(["3/6/14",12]);
+				$scope.streakData.visual.dataTable.addRow(["3/7/14",5]);
+				$scope.streakData.visual.dataTable.addRow(["3/8/14",0]);
+				$scope.streakData.visual.dataTable.addRow(["3/9/14",0]);
+				$scope.streakData.visual.dataTable.addRow(["3/10/14",8]);
+				$scope.streakData.visual.dataTable.addRow(["3/11/14",15]);
+				$scope.streakData.visual.dataTable.addRow(["3/12/14",12]);
+				$scope.streakData.visual.dataTable.addRow(["3/13/14",5]);
+				$scope.streakData.visual.dataTable.addRow(["3/14/14",4]);
+				$scope.streakData.visual.title = "Last 14 Days";
+				
+				$scope.$apply(function(){
+					$scope.activateChart = true;	
+				});
+			}); 
+		}
 
 	});
 	
@@ -260,35 +296,30 @@ app.directive("googleChart",function($timeout){
         restrict : "A",
         link: function($scope, $elem, $attr){
         	var model,
+        		initChart = function() {
+	        		model = $scope.$eval($attr.ngModel);
+	        		if (model) {
+	        			var dt = model.dataTable;
 
-        	// Recursive function, check X times for data before
-        	// giving up due to lack of data available on model
-        	initChart = function(attempts) {
-        		model = $scope.$eval($attr.ngModel);
+	        			var options = {};
 
-        		// If the model is undefined or empty,
-        		// try X more times until quitting
-        		if (!$scope.$eval($attr.ngModel)) {
-        			
-        			$timeout(function(){
-        				console.log('trying again');
-        				if (attempts) initChart(attempts - 1);
-        			}, 1000)
+	        			if(model.title) {
+	        				options.title = model.title;
+	        			}
+	        			    
+	        			var googleChart = new google.visualization[$attr.googleChart]($elem[0]);
+	        			googleChart.draw(dt,options)
+	        		}
+        		};
 
-        		} else {
-        			// If we found data, move forward with creating chart
-        			var dt = model.dataTable;
-
-        			var options = {};
-        			if(model.title)
-        			    options.title = model.title;
-
-        			var googleChart = new google.visualization[$attr.googleChart]($elem[0]);
-        			googleChart.draw(dt,options)
+        	// Watch the scope value placed on the trigger attribute
+        	// if it ever flips to true, activate the chart
+        	$scope.$watch($attr.trigger, function(val){
+        		if (val === true) {
+        			initChart(); 
         		}
-        	}
-
-        	initChart(4); // Begin attempts to init chart
+        	});
+        	
         }
     }
 });
