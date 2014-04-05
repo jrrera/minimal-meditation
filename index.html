@@ -1,8 +1,8 @@
 <html ng-app="meditationApp">
 <head>
 	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-	<link rel="stylesheet" href="css/flipclock.css" /> 
-	<link rel="stylesheet" href="css/main.css">
+	<link rel="stylesheet" href="static/css/flipclock.css" /> 
+	<link rel="stylesheet" href="static/css/main.css">
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -67,10 +67,13 @@
 <hr />
 
 <!--Streak tracking session-->
-<div id="streak" ng-show="streakData.streakDays">
-	<span class="lead"> 
+<div id="streak">
+	<span class="lead" ng-show="streakData.streakDays"> 
 		You're going strong at <strong>{{streakData.streakDays}}</strong> days without missing a session!
 	</span> 
+	<span class="lead" ng-show="!streakData.streakDays"> 
+		No streak at the moment. Let's meditate to fix that!
+	</span>
 </div>
 <!--End streak tracking section-->
 
@@ -100,16 +103,16 @@
 </div> <!--.container div-->
 
 <audio id="bell">
-  <source src="audio/small-bell.mp3" type="audio/mpeg">
+  <source src="static/audio/small-bell.mp3" type="audio/mpeg">
   <!--<source src="small-bell.ogg" type="audio/ogg">-->
   <embed height="0" width="0" src="audio/small-bell.mp3">
 </audio>
 
 <script src="https://www.google.com/jsapi" type="text/javascript"></script>
-<script src="js/lib/jquery-1.11.0.min.js"></script>
-<script src="js/lib/angular.min.js"></script>
-<script src="js/lib/flipclock.js"></script>
-<script src="js/meditation_script.js"></script>
+<script src="static/js/lib/jquery-1.11.0.min.js"></script>
+<script src="static/js/lib/angular.min.js"></script>
+<script src="static/js/lib/flipclock.js"></script>
+<script src="static/js/meditation_script.js"></script>
 
 </body>
 

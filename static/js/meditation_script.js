@@ -228,6 +228,7 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', 'ChartService'
 	// Get past activity
 	DataService.getSessions().then(function(data){
 		$scope.pastActivity = data;
+		console.log($scope.pastActivity);
 
 		// Seconds per day of meditation that is your goal
 		// This will eventually be part of onboarding onto the app
