@@ -18,7 +18,7 @@ app.filter('minutes', function(){
 	}
 });
 
-app.factory('ChartService', function() {
+app.factory('ChartService', function(DataService) {
     return {
         
         /**
@@ -46,7 +46,55 @@ app.factory('ChartService', function() {
                 console.log('Could not load Google lib', e);
                 return false;  
             }
+        },
 
+        /**
+         * Populates the rows of the column chart using past activity
+         * @param {object} dataTable - The dataTable object
+         * @param {array} pastActivity - The array of session objects
+         * @param {days} days - The number of days to go back to
+         */
+        populateRows: function(dataTable, pastActivity, days) {
+        	var datesArray = [], // Will hold the last X days of dates
+				theDate, // Will hold whatever date we're processing
+				dd = new Date().getDate(), // For convenience
+				i;
+
+        	// Cycle through the last X days, based on parameter passed in
+        	for (i = days; i > 0; i--) {
+
+        		// Subtract 'i' days from the current date
+        		theDate = new Date(new Date().setDate(dd-i));
+
+        		// Conver to the proper format
+        		theDate = DataService.convertDateFormat(theDate);
+
+        		// Push the array
+        		datesArray.push(theDate);
+        	}
+
+        	// Loop through our past activity. If the date is within range
+        	// add it to the returned array
+        	$.each(datesArray, function(i, date){
+        		var match = false;
+
+        		angular.forEach(pastActivity, function(session, i) {
+        			var sessionDate,
+        				sessionDuration;
+
+        			// Convert the session.date integer into proper format
+        			sessionDate = DataService.convertDateFormat(new Date(session.date));
+
+        			// If a match, convert duration to minutes and add row
+        			if (date === sessionDate) {
+        				sessionDuration = parseInt(session.duration) / 60;
+        				dataTable.addRow([sessionDate, sessionDuration]);
+        				match = true;
+        			}
+        		});	
+
+        		if (!match) dataTable.addRow([date, 0]);
+        	});
         }
     };
 });
@@ -68,6 +116,7 @@ app.factory('DataService', ['$q', function($q){
 			sessions.push(session);
 			localStorage['meditationData'] = JSON.stringify(sessions);
 		},
+
 		getSessions: function() {
 			try {
 				// Try returning the parsed meditation data wrapped in a promise
@@ -77,6 +126,7 @@ app.factory('DataService', ['$q', function($q){
 				return $q.when([]); // Return a promise with an empty array
 			}
 		},
+
 		deleteSession: function(session, index) {
 			var sessions = JSON.parse(localStorage['meditationData']);
 			sessions.splice(index, 1);
@@ -120,6 +170,51 @@ app.factory('DataService', ['$q', function($q){
 
 			localStorage['meditationLastDuration'] = seconds;
 			return true;
+		},
+		convertDateFormat: function (dateObj) {
+    		var dd = dateObj.getDate();
+    		var mm = dateObj.getMonth()+1; //January is 0!
+    		var yyyy = dateObj.getFullYear();
+    		var formattedDate = mm+'/'+dd+'/'+yyyy;
+    		
+    		return formattedDate;
+    	},
+
+		calculateStreak: function(pastActivity) {
+			var today = new Date(),
+				dd = today.getDate(),
+				unbrokenStreak = true,
+				streakLength = 0,
+				self = this; // Maintain reference to 'this'
+
+			// Cycle through the last X days, based on parameter passed in
+			while (unbrokenStreak) {
+
+				// We assume the streak will be broken until we find a match
+				unbrokenStreak = false; 
+				
+				// Subtract 'i' days from the current date
+				theDate = new Date(new Date().setDate(dd-streakLength));
+
+				// Conver to the proper format
+				theDate = self.convertDateFormat(theDate);
+
+				angular.forEach(pastActivity, function(session, i) {
+					var sessionDate;
+
+					// Convert the session.date integer into proper format
+					sessionDate = self.convertDateFormat(new Date(session.date));
+
+					// If a match, convert duration to minutes and add row
+					if (theDate === sessionDate) {
+						console.log('found another streak day! Now at', streakLength, 'days');
+						streakLength += 1;
+						unbrokenStreak = true;
+					}
+				});	
+			}
+
+			return streakLength;
 		}
 	};
 }]);
@@ -154,12 +249,12 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', 'ChartService'
 			}
 
 			// Next, calculate streak data
-			// Example model. Will eventually come from
-			// DataService.calculateStreak(data);
 			$scope.streakData = {
-				streakDays: 4, 
+				streakDays: DataService.calculateStreak($scope.pastActivity), 
 				visual: {}
 			}; 
+
+			console.log('$scope.streakData is', $scope.streakData);
 
 		}); 
 
@@ -169,27 +264,20 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', 'ChartService'
 
 			// As the callback, construct the chart's data model
 			google.setOnLoadCallback(function() {
+				var dataTable, 
+					days = 14; // Number of days to populate on the chart
+
 				$scope.streakData.visual.dataTable = new google.visualization.DataTable();
-				var dataTable = $scope.streakData.visual.dataTable;
+				dataTable = $scope.streakData.visual.dataTable; // Shorthand
 
 				dataTable.addColumn("string","Date")
 				dataTable.addColumn("number","Minutes")
-				dataTable.addRow(["3/1/14",5]);
-				dataTable.addRow(["3/2/14",0]);
-				dataTable.addRow(["3/3/14",0]);
-				dataTable.addRow(["3/4/14",8]);
-				dataTable.addRow(["3/5/14",15]);
-				dataTable.addRow(["3/6/14",12]);
-				dataTable.addRow(["3/7/14",5]);
-				dataTable.addRow(["3/8/14",0]);
-				dataTable.addRow(["3/9/14",0]);
-				dataTable.addRow(["3/10/14",8]);
-				dataTable.addRow(["3/11/14",15]);
-				dataTable.addRow(["3/12/14",12]);
-				dataTable.addRow(["3/13/14",5]);
-				dataTable.addRow(["3/14/14",4]);
 
-				$scope.streakData.visual.title = "Last 14 Days";
+				// This method will go back 14 days and add rows for each
+				// and populate data on those days if eligible
+				ChartService.populateRows(dataTable, $scope.pastActivity, days);
+
+				$scope.streakData.visual.title = "Last " + days + " Days";
 				
 				$scope.$apply(function(){
 					$scope.activateChart = true;	
