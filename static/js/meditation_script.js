@@ -99,65 +99,71 @@ app.factory('ChartService', function(DataService) {
     };
 });
 
-app.factory('DataService', ['$q', function($q){
+app.factory('DataService', ['$q', '$http', function($q, $http){
 	// Uses localStorage for now, wrapped in $q.when() so that it is 
 	// handled as a promise. This API will eventually move to $http 
 	// calls (also a promise)
 	return {
 		saveSession: function(session) {
-			var sessions;
+			// var sessions;
 			
-			try {
-				sessions = JSON.parse(localStorage['meditationData']);	
-			} catch(e) {
-				sessions = [];
-			}
+			// try {
+			// 	sessions = JSON.parse(localStorage['meditationData']);	
+			// } catch(e) {
+			// 	sessions = [];
+			// }
 			
-			sessions.push(session);
-			localStorage['meditationData'] = JSON.stringify(sessions);
+			// sessions.push(session);
+			// localStorage['meditationData'] = JSON.stringify(sessions);
+
+			var request = $http.post('/submit', session).then(function(response){
+				console.log('Response from server', response.data);
+				return response.data;
+			});
+
+			// Return promise object
+			return request;
 		},
 
 		getSessions: function() {
-			try {
-				// Try returning the parsed meditation data wrapped in a promise
-				return $q.when(JSON.parse(localStorage['meditationData']));
-			} catch(e) {
-				console.log('Error: Unable to retrieve session data.', e);
-				return $q.when([]); // Return a promise with an empty array
-			}
+			// try {
+			// 	// Try returning the parsed meditation data wrapped in a promise
+			// 	return $q.when(JSON.parse(localStorage['meditationData']));
+			// } catch(e) {
+			// 	console.log('Error: Unable to retrieve session data.', e);
+			// 	return $q.when([]); // Return a promise with an empty array
+			// }
+
+			var request = $http.get('/getsessions').then(function(response){
+				console.log('Response from server', response.data);
+				return response.data;
+			});
+
+			return request; //promise object
 		},
 
 		deleteSession: function(session, index) {
-			var sessions = JSON.parse(localStorage['meditationData']);
-			sessions.splice(index, 1);
+			// var sessions = JSON.parse(localStorage['meditationData']);
+			// sessions.splice(index, 1);
 
-			localStorage['meditationData'] = JSON.stringify(sessions);
+			// localStorage['meditationData'] = JSON.stringify(sessions);
+			console.log('Not a feature yet. Stay tuned!');
 		},
 
 		saveGoal: function(duration) {
-			localStorage['meditationGoal'] = duration;
+			// localStorage['meditationGoal'] = duration;
+
+			// Don't save anything if duration is invalid
+			if (!duration || isNaN(duration)) return false;
+
+			var request = $http.post('/updateuser', {"goal": duration}).then(function(response){
+				console.log('Response from server', response.data);
+				return response.data;
+			});
+
+			// Return promise object
+			return request;
 		}, 
-
-		getGoal: function() {
-			var duration = parseInt(localStorage['meditationGoal']);
-			// Return 600 seconds by default if no valid data to pull
-			// wrapped in a $q promise
-			return $q.when(duration ? duration : 600);
-		},
-
-		/**
-		 * Call upon last used meditation duration if available
-		 * @returns {number|null} - Returns null if no number value can be found
-		 */
-		getLastDuration: function() {
-			var lastDuration = localStorage['meditationLastDuration'];
-
-			if (!lastDuration || isNaN(lastDuration)) {
-				return null;
-			} else {
-				return lastDuration;
-			}
-		},
 
 		/**
 		 * Save last used meditation duration if available
@@ -168,9 +174,45 @@ app.factory('DataService', ['$q', function($q){
 			// Don't save anything if seconds are invalid
 			if (!seconds || isNaN(seconds)) return false;
 
-			localStorage['meditationLastDuration'] = seconds;
-			return true;
+			var request = $http.post('/updateuser', {"duration": duration}).then(function(response){
+				console.log('Response from server', response.data);
+				return response.data;
+			});
+
+			// Return promise object
+			return request;
 		},
+
+		getUserData: function() {
+			var request = $http.get('/getuser').then(function(response){
+				console.log('Response from server', response.data);
+				return response.data;
+			});
+
+			return request; //promise object
+		},
+
+		// getGoal: function() {
+		// 	var duration = parseInt(localStorage['meditationGoal']);
+		// 	// Return 600 seconds by default if no valid data to pull
+		// 	// wrapped in a $q promise
+		// 	return $q.when(duration ? duration : 600);
+		// },
+
+		// /*
+		//  * Call upon last used meditation duration if available
+		//  * @returns {number|null} - Returns null if no number value can be found
+		//	*/
+		 
+		// getLastDuration: function() {
+		// 	var lastDuration = localStorage['meditationLastDuration'];
+
+		// 	if (!lastDuration || isNaN(lastDuration)) {
+		// 		return null;
+		// 	} else {
+		// 		return lastDuration;
+		// 	}
+		// },
 		convertDateFormat: function (dateObj) {
     		var dd = dateObj.getDate();
     		var mm = dateObj.getMonth()+1; //January is 0!
@@ -227,37 +269,37 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', 'ChartService'
 
 	// Get past activity
 	DataService.getSessions().then(function(data){
-		$scope.pastActivity = data;
+		$scope.pastActivity = data.session;
 		console.log($scope.pastActivity);
 
-		// Seconds per day of meditation that is your goal
-		// This will eventually be part of onboarding onto the app
-		DataService.getGoal().then(function(goalVal){
-			$scope.goal = goalVal;
+		// Next, get user data, such as last goal set and last duration used
+		DataService.getUserData().then(function(data){
+			console.log('used data', data);
 
-			// Default values for changing your meditation goal
-			$scope.goalChange = {
-				minutes: Math.floor($scope.goal / 60),
-				seconds: $scope.goal % 60
-			};
+			$scope.duration = data.lastDuration;
+			$scope.goal = data.lastGoal;		
 
-			$scope.duration = DataService.getLastDuration();
-
-			// If we have a duration pulled from localStorage, convert
-			// to minutes for the input box
+			// Convert to minutes for input box
 			if ($scope.duration) {
 				$scope.minutes = ($scope.duration / 60).toFixed(1);
 			}
 
-			// Next, calculate streak data
-			$scope.streakData = {
-				streakDays: DataService.calculateStreak($scope.pastActivity), 
-				visual: {}
-			}; 
+			if ($scope.goal) {
+				// Default values for changing your meditation goal
+				$scope.goalChange = {	
+					minutes: Math.floor($scope.goal / 60),
+					seconds: $scope.goal % 60
+				};
+			}
+		});
 
-			console.log('$scope.streakData is', $scope.streakData);
+		// Next, calculate streak data
+		$scope.streakData = {
+			streakDays: DataService.calculateStreak($scope.pastActivity), 
+			visual: {}
+		}; 
 
-		}); 
+		console.log('$scope.streakData is', $scope.streakData);
 
 		// Next, we load the Google Visualization module for charting progress
 		// If successful, we flip on the switch for the chart directive

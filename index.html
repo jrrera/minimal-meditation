@@ -87,12 +87,12 @@
 <hr />
 
 <!--Past activity section-->
-<div id="activity">
+<div id="activity" ng-show="pastActivity">
 	<h3> Past Meditation Sessions </h3>
 	<ul id="history">
 		<li ng-repeat="session in pastActivity track by $index">
 			<span ng-class="{successful : session.reachedGoal}">
-				{{session.date | date:'shortDate'}}: {{ session.duration | minutes }} - <em>Goal:</em> <strong>{{session.goal | minutes}}</strong>
+				{{ session.date | date:'shortDate' }}: {{ session.duration | minutes }} - <em>Goal:</em> <strong>{{ session.goal | minutes }}</strong>
 			</span>
 			<button class="btn btn-xs" ng-click="deleteSession(session, $index)">Delete</button>
 		</li>
