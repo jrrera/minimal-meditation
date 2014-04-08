@@ -139,11 +139,17 @@ class GetUserData(webapp2.RequestHandler):
 
         if len(query) == 0:
 
-            # Create new user and put
-            user_data = UserData()
+            # Get prelim values and default
             email = users.get_current_user().email()
             last_duration = 0
-            last_goal = 0
+            last_goal = 300
+
+            # Create new user and put
+            user_data = UserData()
+            user_data.user = user
+            user_data.email = email
+            user_data.last_duration = last_duration
+            user_data.last_goal = last_goal
 
             user_data.put()
 
@@ -211,7 +217,7 @@ class UpdateUser(webapp2.RequestHandler):
 
         # Grab user and user data
         user = get_user()
-        user_data = User.query(user == user).fetch()[0]
+        user_data = UserData.query(UserData.user == user).fetch()[0]
 
         # Flips to true if any updates were made
         updated = False
@@ -227,24 +233,7 @@ class UpdateUser(webapp2.RequestHandler):
             user_data.last_goal = int(user_dict.get('goal'))
             updated = True
 
-        user_dict.put()
-
-        # Pre-process received data, including escaping HTML chars
-        safe_user_dict = {} # Escaped / processed data will go in here
-
-        safe_user_dict['user'] = user
-        safe_user_dict['duration'] = int(user_dict.get('duration'), 0)
-        safe_user_dict['goal'] = int(user_dict.get('goal'), 0)
-        safe_user_dict['reached_goal'] = bool(user_dict.get('reachedGoal'), False)
-
-        # Begin validity check
-        # validity_check = self.verify_data_integrity(safe_user_dict)
-
-        new_user = user()
-
-        # Populate the entity with cleaned dictionary values and save
-        new_user.populate(**safe_survey_dict)
-        new_user.put()
+        user_data.put()
 
         # Let user know this was a success!
         response = {"status": "success"}

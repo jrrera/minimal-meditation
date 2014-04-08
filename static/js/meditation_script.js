@@ -174,7 +174,7 @@ app.factory('DataService', ['$q', '$http', function($q, $http){
 			// Don't save anything if seconds are invalid
 			if (!seconds || isNaN(seconds)) return false;
 
-			var request = $http.post('/updateuser', {"duration": duration}).then(function(response){
+			var request = $http.post('/updateuser', {"duration": seconds}).then(function(response){
 				console.log('Response from server', response.data);
 				return response.data;
 			});
@@ -269,7 +269,7 @@ app.controller('ClockCtrl', ['$scope', '$timeout', 'DataService', 'ChartService'
 
 	// Get past activity
 	DataService.getSessions().then(function(data){
-		$scope.pastActivity = data.session;
+		$scope.pastActivity = data.sessions;
 		console.log($scope.pastActivity);
 
 		// Next, get user data, such as last goal set and last duration used

@@ -78,7 +78,7 @@
 <!--End streak tracking section-->
 
 <!--Goal visualization-->
-<div id="goal-visual">
+<div id="goal-visual" ng-show="pastActivity">
 	<div class="chart" google-chart="ColumnChart" ng-model="streakData.visual" trigger="activateChart"></div>
 	<br />
 </div>
